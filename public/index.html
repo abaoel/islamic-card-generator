@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>Du'a & Qur'an Verse Card — AI</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+	<style>
+		:root {
+			color-scheme: light;
+			--parchment: #fdfaf3;         /* soft cream */
+			--umber: #1c1408;             /* near-black brown */
+			--umber-soft: #3d2712;
+			--sepia: #6b5236;
+			--emerald: #059669;           /* Islamic green (primary) */
+			--emerald-deep: #047857;
+			--emerald-soft: #d1fae5;
+			--gold: #b45309;              /* warm gold accent */
+			--gold-deep: #92400e;
+			--jade-line: #a7f3d0;         /* light green divider */
+		}
+
+		body {
+			font: 20px/1.7 "EB Garamond", "Cormorant Garamond", Georgia, serif;
+			max-width: 800px; margin: 0 auto; padding: 40px 24px 60px;
+			background:
+				radial-gradient(ellipse at 15% 5%, rgba(5, 150, 105, 0.05), transparent 50%),
+				radial-gradient(ellipse at 85% 95%, rgba(180, 83, 9, 0.04), transparent 55%),
+				var(--parchment);
+			color: var(--umber);
+			min-height: 100vh;
+		}
+
+		/* ============ HEADER ============ */
+		header.site {
+			text-align: center;
+			padding: 24px 20px 32px;
+			margin-bottom: 32px;
+			position: relative;
+			border-top: 3px double var(--emerald);
+			border-bottom: 3px double var(--emerald);
+		}
+		header.site::before,
+		header.site::after {
+			content: '';
+			position: absolute; left: 20%; right: 20%; height: 1px;
+			background: var(--jade-line);
+		}
+		header.site::before { top: 8px; }
+		header.site::after  { bottom: 8px; }
+
+		.emblem {
+			font-family: "Cormorant Garamond", Georgia, serif;
+			font-size: 56px; line-height: 1;
+			color: var(--emerald);
+			margin-bottom: 10px;
+			letter-spacing: 10px;
+			padding-left: 10px;
+		}
+
+		header.site h1 {
+			font-family: "Cormorant Garamond", Georgia, serif;
+			font-weight: 600;
+			font-style: italic;
+			font-size: 52px;
+			line-height: 1.1;
+			color: var(--umber);
+			margin: 0 0 12px;
+			letter-spacing: 0.5px;
+		}
+
+		.tagline {
+			font-family: "EB Garamond", Georgia, serif;
+			font-variant: small-caps;
+			letter-spacing: 5px;
+			font-size: 16px;
+			color: var(--umber-soft);
+			margin: 0 0 14px;
+		}
+
+		.dev {
+			font-family: "EB Garamond", Georgia, serif;
+			font-style: italic;
+			font-size: 16px;
+			color: var(--umber-soft);
+		}
+		.dev a { color: var(--emerald-deep); text-decoration: none; border-bottom: 1px dotted var(--emerald); }
+		.dev a:hover { color: var(--gold); }
+
+		/* ============ SECTION DIVIDERS ============ */
+		.fleuron {
+			text-align: center;
+			color: var(--emerald);
+			margin: 28px 0 20px;
+			font-size: 22px;
+			letter-spacing: 22px;
+			padding-left: 22px;
+		}
+
+		/* ============ ABOUT ============ */
+		details.about {
+			margin: 20px 0;
+			padding: 14px 22px;
+			border: 1px solid var(--jade-line);
+			border-left: 4px solid var(--emerald);
+			border-radius: 4px;
+			background: #ffffff;
+			font-family: "EB Garamond", Georgia, serif;
+		}
+		details.about > summary {
+			cursor: pointer;
+			font-family: "Cormorant Garamond", Georgia, serif;
+			font-variant: small-caps;
+			letter-spacing: 3px;
+			font-weight: 700; font-size: 20px;
+			color: var(--umber);
+			list-style: none;
+			display: flex; align-items: center; gap: 10px;
+			user-select: none;
+		}
+		details.about > summary::-webkit-details-marker { display: none; }
+		details.about > summary::before {
+			content: '✧'; color: var(--emerald); transition: transform 0.15s ease;
+			font-size: 18px;
+		}
+		details.about[open] > summary { margin-bottom: 10px; }
+		details.about[open] > summary::before { transform: rotate(180deg); }
+		details.about p { margin: 0 0 10px; font-size: 18px; color: var(--umber); line-height: 1.6; }
+		details.about p:last-child { margin-bottom: 0; }
+		details.about strong { color: var(--emerald-deep); font-weight: 700; }
+
+		/* ============ FORM ============ */
+		label {
+			display: block;
+			margin: 22px 0 6px;
+			font-family: "Cormorant Garamond", Georgia, serif;
+			font-variant: small-caps;
+			letter-spacing: 3px;
+			font-weight: 700;
+			font-size: 17px;
+			color: var(--emerald-deep);
+		}
+		.hint {
+			font-family: "EB Garamond", Georgia, serif;
+			font-variant: normal;
+			letter-spacing: 0;
+			font-style: italic;
+			font-size: 15px;
+			color: var(--sepia);
+			font-weight: 400;
+			margin-left: 6px;
+			text-transform: none;
+		}
+
+		input, select, textarea {
+			width: 100%; padding: 12px 14px; box-sizing: border-box;
+			font: 18px/1.5 "EB Garamond", Georgia, serif;
+			border: 1px solid var(--jade-line);
+			border-radius: 3px;
+			background: #ffffff;
+			color: var(--umber);
+		}
+		input:focus, select:focus, textarea:focus {
+			outline: none;
+			border-color: var(--emerald);
+			box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15);
+		}
+		textarea { resize: vertical; min-height: 70px; }
+		select option { color: var(--umber); background: #ffffff; }
+
+		.row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+		/* ============ BUTTONS ============ */
+		.actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+		button {
+			padding: 12px 22px;
+			font: 700 17px/1 "Cormorant Garamond", Georgia, serif;
+			font-variant: small-caps;
+			letter-spacing: 2px;
+			border: 1px solid var(--emerald);
+			border-radius: 3px;
+			cursor: pointer;
+			background: var(--emerald);
+			color: #ffffff;
+			transition: background 0.15s ease;
+		}
+		button:hover { background: var(--emerald-deep); }
+		button:disabled { opacity: 0.55; cursor: wait; }
+		button.secondary {
+			background: transparent; color: var(--umber-soft);
+			border: 1px solid var(--jade-line);
+		}
+		button.secondary:hover { background: rgba(167, 243, 208, 0.2); color: var(--umber); }
+		button.ai {
+			background: var(--gold);
+			border-color: var(--gold);
+			color: #ffffff;
+		}
+		button.ai::before { content: '☪ '; color: #ffe9a8; }
+		button.ai:hover { background: var(--gold-deep); }
+
+		/* ============ VERSE ROWS ============ */
+		.verses { margin-top: 10px; }
+		.verse-item {
+			display: grid;
+			grid-template-columns: 1fr 1fr 2fr auto;
+			gap: 8px;
+			align-items: start;
+			margin-bottom: 12px;
+			padding: 10px; background: #ffffff;
+			border-left: 3px solid var(--emerald);
+			border-radius: 0 3px 3px 0;
+		}
+		.verse-item input, .verse-item textarea {
+			padding: 7px 9px; font-size: 15px;
+		}
+		.verse-item .surah, .verse-item .ref {
+			font-family: "Cormorant Garamond", Georgia, serif;
+			font-weight: 700; color: var(--emerald-deep);
+		}
+		.verse-item textarea {
+			font-style: italic;
+			min-height: 60px;
+		}
+		.verse-item .removeBtn {
+			padding: 6px 10px; background: transparent; color: var(--gold);
+			border: 1px solid rgba(180, 83, 9, 0.35); font-weight: 700;
+			height: fit-content; font-size: 18px; letter-spacing: 0;
+			font-variant: normal;
+		}
+		.verse-item .removeBtn:hover { background: rgba(180, 83, 9, 0.08); }
+		.verse-item .translit {
+			grid-column: 1 / -1;
+			padding: 6px 9px; font-size: 14px; font-style: italic;
+			color: var(--sepia);
+		}
+
+		/* ============ PREVIEW ============ */
+		img#preview {
+			display: block; width: 100%; max-width: 580px;
+			margin: 24px auto 0;
+			border: 1px solid var(--jade-line);
+			border-radius: 4px;
+			background: #ffffff;
+			box-shadow: 0 4px 24px rgba(28, 20, 8, 0.1);
+		}
+		.status {
+			margin-top: 10px; font-size: 15px;
+			font-family: "EB Garamond", Georgia, serif; font-style: italic;
+			color: var(--sepia); min-height: 22px; text-align: center;
+		}
+		.status.err { color: var(--gold-deep); }
+	</style>
+</head>
+<body>
+	<header class="site">
+		<div class="emblem">☪</div>
+		<h1>Du&rsquo;a &amp; Qur&rsquo;an Verse Card</h1>
+		<div class="tagline">A Digital Du&rsquo;a &middot; Powered by Groq</div>
+		<div class="dev">Crafted by Emmanuel Abao &middot; <a href="mailto:abaoel@gmail.com">abaoel@gmail.com</a></div>
+	</header>
+
+	<details class="about">
+		<summary>About this project</summary>
+		<p>
+			Describe a life situation &mdash; someone facing surgery, a Ramadan reflection, a difficult
+			decision, gratitude, or illness &mdash; and receive <strong>two or three relevant verses from
+			the Qur&rsquo;an and a short du&rsquo;a (supplication)</strong>, rendered as a shareable
+			1080&times;1350 image ready for Messenger, WhatsApp, or Instagram.
+		</p>
+		<p>
+			The suggestion is a starting point &mdash; every field is editable before you download.
+			Translations come from widely-recognized English renderings (Sahih International, Yusuf Ali,
+			or Pickthall), with Latin-script transliteration provided as an aid.
+		</p>
+	</details>
+
+	<div class="fleuron">✦ &nbsp; ☪ &nbsp; ✦</div>
+
+	<label>Situation
+		<span class="hint">(what the du&rsquo;a is about)</span>
+		<textarea id="situation" rows="2">a family member starting chemotherapy this week</textarea>
+	</label>
+
+	<div class="actions" style="margin-top: 4px;">
+		<button id="suggestBtn" class="ai" type="button">Find Verses &amp; Du&rsquo;a with AI</button>
+	</div>
+	<div id="suggestStatus" class="status" style="text-align:left"></div>
+
+	<label>Recipient <span class="hint">(optional; shown as "&mdash; for [name] &mdash;")</span>
+		<input id="recipient" value="Aisha" />
+	</label>
+
+	<label>Verses <span class="hint">(edit freely)</span></label>
+	<div id="verses" class="verses"></div>
+	<button id="addVerseBtn" class="secondary" type="button" style="margin-top: 4px;">Add another verse</button>
+
+	<label>Du&rsquo;a <span class="hint">(edit freely)</span>
+		<textarea id="dua" rows="7">Ya Allah, we place our beloved into Your gentle mercy. Grant strength for every step of treatment, ease every pain, and comfort every fear. Bless the hands of the doctors and the hearts of the caregivers. Shower healing upon the body and peace upon the soul, and let each day bring signs of Your nearness. You are Al-Shafi, the Healer, and we trust in You. Ameen.</textarea>
+	</label>
+
+	<div class="row">
+		<label>Theme
+			<select id="theme">
+				<option value="emerald">Emerald (Prophetic green)</option>
+				<option value="midnight">Midnight (Kaaba dark + gold)</option>
+				<option value="marble">Marble (white + gold)</option>
+				<option value="sunset">Sunset (Maghrib warmth)</option>
+				<option value="desert">Desert (sand + green)</option>
+				<option value="rose">Rose (soft pink + gold)</option>
+			</select>
+		</label>
+		<label>Accent (hex, optional override)
+			<input id="accent" placeholder="e.g. 059669 for emerald" />
+		</label>
+	</div>
+
+	<div class="fleuron">✦ &nbsp; ☪ &nbsp; ✦</div>
+
+	<img id="preview" alt="Du'a card preview" />
+	<div id="renderStatus" class="status"></div>
+	<div class="actions" style="justify-content: center;">
+		<button id="downloadBtn" type="button">Download PNG</button>
+	</div>
+
+	<script>
+		const $ = (id) => document.getElementById(id);
+		const versesEl = $('verses');
+		const preview = $('preview');
+		const renderStatus = $('renderStatus');
+		const suggestStatus = $('suggestStatus');
+		let currentBlobUrl = '';
+
+		// Seed with two default verses so the preview renders immediately.
+		let verses = [
+			{ surah: 'Al-Baqarah', reference: '2:286',
+			  translation: "Allah does not burden a soul beyond that it can bear.",
+			  transliteration: "Lā yukallifu Allāhu nafsan illā wus'ahā." },
+			{ surah: 'Ash-Sharh', reference: '94:5-6',
+			  translation: "For indeed, with hardship comes ease. Indeed, with hardship comes ease.",
+			  transliteration: "Fa inna ma'al 'usri yusrā. Inna ma'al 'usri yusrā." },
+		];
+
+		function esc(s) { return String(s || '').replace(/"/g, '&quot;'); }
+		function escT(s) { return String(s || ''); }
+
+		function renderVerseList() {
+			versesEl.innerHTML = '';
+			verses.forEach((v, i) => {
+				const row = document.createElement('div');
+				row.className = 'verse-item';
+				row.innerHTML = `
+					<input class="surah" data-i="${i}" data-field="surah" value="${esc(v.surah)}" placeholder="Surah (e.g., Al-Baqarah)" />
+					<input class="ref"   data-i="${i}" data-field="reference" value="${esc(v.reference)}" placeholder="Ref (e.g., 2:286)" />
+					<textarea data-i="${i}" data-field="translation" placeholder="English translation">${escT(v.translation)}</textarea>
+					<button data-i="${i}" class="removeBtn" type="button">×</button>
+					<textarea class="translit" data-i="${i}" data-field="transliteration" placeholder="Transliteration (optional)">${escT(v.transliteration)}</textarea>
+				`;
+				versesEl.appendChild(row);
+			});
+			versesEl.querySelectorAll('input, textarea').forEach(el => {
+				el.addEventListener('input', () => {
+					const i = +el.dataset.i;
+					verses[i][el.dataset.field] = el.value;
+					scheduleRender();
+				});
+			});
+			versesEl.querySelectorAll('.removeBtn').forEach(el => {
+				el.addEventListener('click', () => {
+					verses.splice(+el.dataset.i, 1);
+					renderVerseList();
+					scheduleRender();
+				});
+			});
+		}
+
+		function payload() {
+			return {
+				situation: $('situation').value,
+				recipient: $('recipient').value,
+				verses: verses.filter(v => v.surah || v.reference || v.translation),
+				dua: $('dua').value,
+				theme: $('theme').value,
+				accent: $('accent').value,
+			};
+		}
+
+		async function renderCard() {
+			try {
+				const res = await fetch('/api/card', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(payload()),
+				});
+				if (!res.ok) {
+					const text = await res.text();
+					renderStatus.textContent = 'Render failed: ' + text.trim();
+					renderStatus.classList.add('err');
+					return;
+				}
+				const blob = await res.blob();
+				if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+				currentBlobUrl = URL.createObjectURL(blob);
+				preview.src = currentBlobUrl;
+				renderStatus.textContent = 'Rendered ' + (blob.size / 1024).toFixed(1) + ' KB';
+				renderStatus.classList.remove('err');
+			} catch (err) {
+				renderStatus.textContent = 'Network error: ' + err.message;
+				renderStatus.classList.add('err');
+			}
+		}
+
+		let t;
+		function scheduleRender() {
+			clearTimeout(t);
+			t = setTimeout(renderCard, 300);
+		}
+
+		async function askAI() {
+			const btn = $('suggestBtn');
+			btn.disabled = true;
+			const orig = btn.textContent;
+			btn.textContent = 'Reflecting…';
+			suggestStatus.textContent = '';
+			suggestStatus.classList.remove('err');
+			try {
+				const res = await fetch('/api/suggest', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ situation: $('situation').value }),
+				});
+				const text = await res.text();
+				if (!res.ok) throw new Error(text || 'AI request failed');
+				const data = JSON.parse(text);
+				if (Array.isArray(data.verses) && data.verses.length) {
+					verses = data.verses.map(v => ({
+						surah: String(v.surah || ''),
+						reference: String(v.reference || ''),
+						translation: String(v.translation || ''),
+						transliteration: String(v.transliteration || ''),
+					}));
+					renderVerseList();
+				}
+				if (typeof data.dua === 'string' && data.dua) {
+					$('dua').value = data.dua;
+				}
+				suggestStatus.textContent = 'Received ' + (data.verses?.length || 0) + ' verse(s) and a du\'a.';
+				renderCard();
+			} catch (err) {
+				suggestStatus.textContent = 'AI error: ' + err.message;
+				suggestStatus.classList.add('err');
+			} finally {
+				btn.disabled = false;
+				btn.textContent = orig;
+			}
+		}
+
+		$('suggestBtn').addEventListener('click', askAI);
+		$('addVerseBtn').addEventListener('click', () => {
+			verses.push({ surah: '', reference: '', translation: '', transliteration: '' });
+			renderVerseList();
+		});
+		['situation', 'recipient', 'dua', 'theme', 'accent'].forEach(id => {
+			$(id).addEventListener('input', scheduleRender);
+			$(id).addEventListener('change', scheduleRender);
+		});
+		$('downloadBtn').addEventListener('click', () => {
+			if (!currentBlobUrl) return;
+			const a = document.createElement('a');
+			a.href = currentBlobUrl;
+			const slug = (payload().situation || 'dua').toLowerCase()
+				.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'dua';
+			a.download = 'dua-' + slug + '.png';
+			document.body.appendChild(a); a.click(); a.remove();
+		});
+
+		renderVerseList();
+		renderCard();
+	</script>
+</body>
+</html>

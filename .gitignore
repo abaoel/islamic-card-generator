@@ -1,0 +1,7 @@
+/tmp/
+.vercel/
+*.png
+!public/*.png
+.env
+.env.*
+!.env.example
