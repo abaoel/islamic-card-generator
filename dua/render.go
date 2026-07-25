@@ -394,15 +394,15 @@ func Render(w io.Writer, p RenderParams) error {
 	}
 
 	// Du'a body (italic) — auto-shrink to fit above the recipient/brand.
-	// The footer occupies roughly the bottom 130px (recipient at Height-100,
+	// The footer occupies roughly the bottom 140px (recipient at Height-100,
 	// brand at Height-55, plus breathing room). Try progressively smaller
-	// sizes until the wrapped block fits, defaulting to 16pt as the floor.
+	// sizes until the wrapped block fits, defaulting to 12pt as the floor.
 	duaText := nonEmpty(p.Dua,
 		"Ya Allah, grant us patience in every trial, gratitude in every blessing, and nearness to You in every breath. Ameen.")
-	const duaBottomBoundary = float64(Height) - 130
+	const duaBottomBoundary = float64(Height) - 140
 
-	chosenSize := 16.0
-	for _, sz := range []float64{22, 20, 18, 16} {
+	chosenSize := 12.0
+	for _, sz := range []float64{22, 20, 18, 16, 14, 12} {
 		face, err := loadFace(goitalic.TTF, sz)
 		if err != nil {
 			continue
@@ -420,7 +420,7 @@ func Render(w io.Writer, p RenderParams) error {
 		dc.SetFontFace(face)
 		dc.SetColor(th.FG)
 		y = drawWrapped(dc, duaText, centerX, y, maxTextWidth, 1.4, gg.AlignCenter)
-		_ = y // (kept for readability; no more drawing depends on y)
+		_ = y
 	}
 
 	// Optional recipient footer.
