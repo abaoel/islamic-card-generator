@@ -20,7 +20,7 @@ const groqURL = "https://api.groq.com/openai/v1/chat/completions"
 
 // DefaultModel is Groq's current recommended text model.
 // See https://console.groq.com/docs/deprecations before pinning.
-const DefaultModel = "llama-3.3-70b-versatile"
+const DefaultModel = "llama-3.1-8b-instant"
 
 // ChatOptions configures a single call to Chat.
 type ChatOptions struct {
