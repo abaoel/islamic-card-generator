@@ -20,7 +20,7 @@ const groqURL = "https://api.groq.com/openai/v1/chat/completions"
 
 // DefaultModel is Groq's current recommended text model.
 // See https://console.groq.com/docs/deprecations before pinning.
-const DefaultModel = "openai/gpt-oss-20b"
+const DefaultModel = "openai/gpt-oss-120b"
 
 // ChatOptions configures a single call to Chat.
 type ChatOptions struct {
