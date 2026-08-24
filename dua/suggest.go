@@ -59,7 +59,7 @@ func Suggest(ctx context.Context, situation string) (Suggestion, error) {
 
 	raw, err := ai.Chat(ctx, suggestSystem, situation, ai.ChatOptions{
 		Temperature: 0.6,
-		MaxTokens:   1500,
+		MaxTokens:   2500,
 		JSON:        true,
 	})
 	if err != nil {
