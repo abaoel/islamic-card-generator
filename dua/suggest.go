@@ -47,7 +47,8 @@ Rules:
 - The transliteration uses common Latin-script conventions (e.g., "Lā yukallifu Allāhu nafsan illā wus'ahā").
 - The du'a must be 60 to 120 words, warm, sincere, and non-preachy. It may begin with "Ya Allah", "O Allah", or "Bismillahir-Rahmanir-Raheem".
 - Do NOT include commentary, markdown, code fences, or any text outside the JSON.
-- Do NOT include Arabic script — English translation + Latin transliteration only.`
+- Do NOT include Arabic script — English translation + Latin transliteration only.
+- Your entire response MUST start with '{' and end with '}'. No preface, no self-check, no explanations.`
 
 // Suggest asks the language model for verses + a du'a for the given situation.
 func Suggest(ctx context.Context, situation string) (Suggestion, error) {
@@ -58,17 +59,98 @@ func Suggest(ctx context.Context, situation string) (Suggestion, error) {
 
 	raw, err := ai.Chat(ctx, suggestSystem, situation, ai.ChatOptions{
 		Temperature: 0.6,
-		MaxTokens:   900,
+		MaxTokens:   1500,
 		JSON:        true,
 	})
 	if err != nil {
 		return s, err
 	}
-	if err := json.Unmarshal([]byte(raw), &s); err != nil {
+	jsonPart := extractJSONObject(raw)
+	if err := json.Unmarshal([]byte(jsonPart), &s); err != nil {
+		if looksTruncated(jsonPart) {
+			return s, fmt.Errorf("ai response was truncated (likely hit the token limit) — try again or raise MaxTokens.\nraw: %s", raw)
+		}
 		return s, fmt.Errorf("ai returned non-JSON: %w\nraw: %s", err, raw)
 	}
 	if len(s.Verses) == 0 || strings.TrimSpace(s.Dua) == "" {
 		return s, fmt.Errorf("ai returned incomplete data: %+v", s)
 	}
 	return s, nil
+}
+
+// extractJSONObject returns the first balanced {...} block found in s, or s
+// itself as a fallback. Some models (notably gpt-oss on Groq) emit a short
+// self-check preamble before the JSON even when response_format=json_object.
+func extractJSONObject(s string) string {
+	start := strings.Index(s, "{")
+	if start < 0 {
+		return s
+	}
+	depth := 0
+	inStr := false
+	esc := false
+	for i := start; i < len(s); i++ {
+		c := s[i]
+		if esc {
+			esc = false
+			continue
+		}
+		if c == '\\' {
+			esc = true
+			continue
+		}
+		if c == '"' {
+			inStr = !inStr
+			continue
+		}
+		if inStr {
+			continue
+		}
+		switch c {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				return s[start : i+1]
+			}
+		}
+	}
+	return s[start:]
+}
+
+// looksTruncated is a cheap heuristic: unbalanced braces or brackets mean
+// the JSON was cut off mid-generation.
+func looksTruncated(s string) bool {
+	braces, brackets := 0, 0
+	inStr, esc := false, false
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if esc {
+			esc = false
+			continue
+		}
+		if c == '\\' {
+			esc = true
+			continue
+		}
+		if c == '"' {
+			inStr = !inStr
+			continue
+		}
+		if inStr {
+			continue
+		}
+		switch c {
+		case '{':
+			braces++
+		case '}':
+			braces--
+		case '[':
+			brackets++
+		case ']':
+			brackets--
+		}
+	}
+	return braces != 0 || brackets != 0
 }

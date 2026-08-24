@@ -1,7 +1,9 @@
-// Package ai is a tiny Groq chat client with no third-party deps beyond net/http.
+// Package ai is a tiny OpenAI-compatible chat client with no third-party
+// deps beyond net/http.
 //
-// It is designed to be reused across small AI-on-Vercel Go projects: give it
-// a system prompt and a user message, get back a string. That's it.
+// It supports a multi-provider fallback chain (Google Gemini → Groq →
+// OpenAI): if the first provider's quota is exhausted or its model is
+// deprecated, the next provider is tried automatically. See fallback.go.
 package ai
 
 import (
@@ -16,33 +18,51 @@ import (
 	"time"
 )
 
-const groqURL = "https://api.groq.com/openai/v1/chat/completions"
-
 // DefaultModel is Groq's current recommended text model.
 // See https://console.groq.com/docs/deprecations before pinning.
 const DefaultModel = "openai/gpt-oss-120b"
 
-// ChatOptions configures a single call to Chat.
+// ChatOptions configures a single call.
 type ChatOptions struct {
-	Model       string
+	Model       string // overrides the provider's default model when set
 	Temperature float64
 	MaxTokens   int
 	JSON        bool
 	Timeout     time.Duration
 }
 
-// Chat sends {system, user} to Groq and returns the assistant reply text.
-// It reads GROQ_API_KEY from the environment.
+// httpError carries the HTTP status returned by a provider so the
+// fallback chain can classify 429 / 5xx as recoverable.
+type httpError struct {
+	Status int
+	Body   string
+}
+
+func (e *httpError) Error() string {
+	return fmt.Sprintf("http %d: %s", e.Status, e.Body)
+}
+
+// Chat is the simple entrypoint: it runs the provider fallback chain and
+// returns just the assistant reply text.
 func Chat(ctx context.Context, system, user string, opts ChatOptions) (string, error) {
-	key := os.Getenv("GROQ_API_KEY")
+	text, _, err := ChatWithFallback(ctx, system, user, opts)
+	return text, err
+}
+
+// chatOnce performs a single OpenAI-compatible chat completion call
+// against the given provider. Returns *httpError for non-2xx responses.
+func chatOnce(ctx context.Context, p Provider, system, user string, opts ChatOptions) (string, error) {
+	key := os.Getenv(p.KeyEnv)
 	if key == "" {
-		return "", errors.New("GROQ_API_KEY is not set")
+		return "", fmt.Errorf("%s is not set", p.KeyEnv)
 	}
-	if opts.Model == "" {
-		opts.Model = DefaultModel
+	model := opts.Model
+	if model == "" {
+		model = p.Model
 	}
-	if opts.Timeout == 0 {
-		opts.Timeout = 25 * time.Second
+	timeout := opts.Timeout
+	if timeout == 0 {
+		timeout = 20 * time.Second
 	}
 
 	type msg struct {
@@ -59,7 +79,7 @@ func Chat(ctx context.Context, system, user string, opts ChatOptions) (string, e
 		MaxTokens      int     `json:"max_tokens,omitempty"`
 		ResponseFormat *rf     `json:"response_format,omitempty"`
 	}{
-		Model: opts.Model,
+		Model: model,
 		Messages: []msg{
 			{Role: "system", Content: system},
 			{Role: "user", Content: user},
@@ -75,23 +95,23 @@ func Chat(ctx context.Context, system, user string, opts ChatOptions) (string, e
 	if err != nil {
 		return "", fmt.Errorf("marshal request: %w", err)
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, groqURL, bytes.NewReader(buf))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, p.BaseURL, bytes.NewReader(buf))
 	if err != nil {
 		return "", err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+key)
 
-	client := &http.Client{Timeout: opts.Timeout}
+	client := &http.Client{Timeout: timeout}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("groq request: %w", err)
+		return "", fmt.Errorf("%s request: %w", p.Label, err)
 	}
 	defer resp.Body.Close()
 
 	raw, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode >= 400 {
-		return "", fmt.Errorf("groq http %d: %s", resp.StatusCode, string(raw))
+		return "", &httpError{Status: resp.StatusCode, Body: string(raw)}
 	}
 
 	var out struct {
@@ -106,13 +126,13 @@ func Chat(ctx context.Context, system, user string, opts ChatOptions) (string, e
 		} `json:"error,omitempty"`
 	}
 	if err := json.Unmarshal(raw, &out); err != nil {
-		return "", fmt.Errorf("decode groq response: %w", err)
+		return "", fmt.Errorf("decode %s response: %w", p.Label, err)
 	}
 	if out.Error != nil {
-		return "", fmt.Errorf("groq error [%s]: %s", out.Error.Code, out.Error.Message)
+		return "", fmt.Errorf("%s error [%s]: %s", p.Label, out.Error.Code, out.Error.Message)
 	}
 	if len(out.Choices) == 0 {
-		return "", errors.New("groq returned no choices")
+		return "", errors.New(p.Label + " returned no choices")
 	}
 	return out.Choices[0].Message.Content, nil
 }
